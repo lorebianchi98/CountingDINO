@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="CountingDINO 🧮🦕 A Training-free Pipeline for Exemplar-based Class-Agnostic Counting">
+  <meta name="keywords" content="class-agnostic counting,exemplar-based conting,unsupervised learning,DINOv2">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🧮🦕 CountingDINO </title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script data-goatcounter="https://paciosoft.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var carousels = bulmaCarousel.attach('#results-carousel', {
+        slidesToScroll: 1,
+        slidesToShow: 1,
+        infinite: true
+      });
+    });
+  </script>
+</head>
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="main navigation" style="flex-grow: 1; justify-content: center;">
+    <div class="navbar-brand">
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+    <div class="navbar-menu">
+        <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+            <a class="navbar-item" href="./index.html">
+                <span class="icon">
+                    <i class="fas fa-home"></i>
+                </span>
+                Home
+            </a>
+        </div>
+    </div>
+  </nav>
+<!-- More Research -- >
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+    <div class="navbar-menu">
+      <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+        
+        < !-- <a class="navbar-item" href="">
+        <span class="icon">
+            <i class="fas fa-home"></i>
+        </span>
+        </a> - ->
+  
+        < !-- <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Related Research
+          </a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="">
+              any
+            </a>
+          </div>
+        </div> -- >
+      </div>
+  
+    </div>
+  </nav>
+-->
+
+<!-- More Research
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="#">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="#">
+            Project 1
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+-->
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <header class="column has-text-centered">
+          <h1 class="title is-1 publication-title">
+            CountingDINO 🧮🦕
+            <p class="title publication-title">A Training-free Pipeline for Exemplar-based Class-Agnostic Counting</p>
+            <!-- <p class="is-size-4 publication-awards"></p> -->
+          </h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/giacomo-pacini/">Giacomo Pacini</a><sup>*1,2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/lorenzo-bianchi-893bb225a/">Lorenzo Bianchi</a><sup>*1,2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/luca-ciampi-phd-0565a3165/">Luca Ciampi</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/nicola-messina-a33848164/">Nicola Messina</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="">Giuseppe Amato</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://fabriziofalchi.it">Fabrizio Falchi</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup><a href="https://www.isti.cnr.it/">ISTI CNR</a></span>
+            <span class="author-block"><sup>2</sup>University of Pisa</span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">* Equal contribution</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="arxiv"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span> -->
+              <!-- <span class="link-block">
+                <a href="./assets/poster.png"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-image"></i>
+                  </span>
+                  <span>Poster</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/lorebianchi98/CountingDINO"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <!-- <span class="link-block">
+                <a href="https://github.com/Ruggero1912/Patch-ioner/tree/main/Patch-ioner/eval-trace-captioning"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Trace Captioning Datasets</span>
+                  </a>
+              </span> -->
+              <!-- <span class="link-block">
+                <a href="https://github.com/Ruggero1912/Patch-ioner"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-balance-scale"></i>
+                  </span>
+                  <span>Models</span>
+                  </a>
+              </span> -->
+              <!-- Video Link.
+              <span class="link-block">
+                <a href=""
+                class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+            </div>
+          </div>
+        </header>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Carousel.
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-1"></div>
+        <div class="item item-2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+-->
+
+<!-- <section class="teaser">
+  <div class="container is-max-desktop">
+    < !-- Paper video. -- >
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video Summary</h2>
+        <figure class="content publication-video image is-16by9">
+          <iframe class="has-ratio" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </figure>
+      </div>
+    </div>
+    < !--/ Paper video. -- >
+  </div>
+</section> -->
+
+<section class="section pt-0">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <!-- Teaser. -->
+        <div class="hero-body">
+          <img src="static/images/arch.png" alt="Unsupervised class-agnostic counting architecture" class="teaser-image">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section pt-0 hero is-light">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <div class="content has-text-justified hero is-light">
+          <h2 class="title is-3">Abstract</h2>
+          <p>
+            <strong>Class-agnostic counting (CAC)</strong> aims to estimate the number of objects in images without being restricted to predefined categories. However, while current <strong>exemplar-based CAC</strong> methods offer flexibility at inference time, they still rely heavily on labeled data for training, which limits scalability and generalization to many downstream use cases.
+          </p>
+          <p>
+            In this paper, we introduce <strong>CountingDINO</strong>, the first <strong>training-free</strong> exemplar-based CAC framework that exploits a <strong>fully unsupervised</strong> feature extractor. Specifically, our approach employs <strong>self-supervised vision-only backbones</strong> to extract object-aware features, and it eliminates the need for annotated data throughout the entire proposed pipeline.
+          </p>
+          <p>
+            At inference time, we extract latent object prototypes via <strong>ROI-Align</strong> from <strong>DINO features</strong> and use them as convolutional kernels to generate similarity maps. These are then transformed into <strong>density maps</strong> through a simple yet effective normalization scheme.
+          </p>
+          <p>
+            We evaluate our approach on the <strong>FSC-147 benchmark</strong>, where we outperform a baseline under the same label-free setting. Our method also achieves <strong>competitive — and in some cases superior — results</strong> compared to training-free approaches relying on supervised backbones, as well as several fully supervised state-of-the-art methods. This demonstrates that <strong>training-free CAC</strong> can be both <strong>scalable</strong> and <strong>competitive</strong>.
+          </p>
+          
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+  <section class="hero is-small is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width" style="padding-top: 40px;">
+        <h2 class="title is-3">Quantitative Results</h2>
+      </div></div></div>
+      <div class="hero-body">
+      <div class="container">
+        <div class="item item-1">
+          <img src="./static/images/quantitatives.png" alt="inference examples" class="teaser-image">
+        </div>
+        <p>
+          <strong>SOTA comparison on FSC-147 (val/test).</strong> Methods are grouped as unsupervised or training-free. Best per category is 
+          <u>underlined</u>; best training-free method with an unsupervised backbone is in 
+          <strong>bold</strong>; <span style="color: red;">†</span> marks results of methods in advantaged (supervised or non-training-free) categories performing worse than <strong>CountingDINO</strong>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero is-small">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width" style="padding-top: 40px;">
+        <h2 class="title is-3">Qualitative Results</h2>
+      </div></div></div>
+      <div class="hero-body">
+      <div class="container">
+        <div class="item item-1">
+          <img src="./static/images/qualitatives.png" alt="inference examples" class="teaser-image">
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+<!-- Concurrent Work.
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Related Links</h2>
+        <div class="content has-text-justified">
+          <p></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+-->
+
+
+<!-- <section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>
+</code></pre>
+  </div>
+</section> -->
+
+<div class="container is-max-desktop content">
+    <h2 class="title">Acknowledgements</h2>
+    <p>
+      <img src="./static/images/fair.svg" class="ack-img" alt="FAIR Project Logo" width="200">
+      This work has received financial support by the project FAIR – Future Artificial Intelligence Research - Spoke 1 (PNRR M4C2 Inv. 1.3 PE00000013) funded by the European Union - Next Generation EU.
+    </p>
+</div>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <!-- <a class="icon-link" href="" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a> -->
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This website is borrowed from <a
+              href="https://github.com/nerfies/nerfies.github.io">nerfies</a>.
+          </p>
+          <p>
+            Dataset and images provided by <a href="http://cocodataset.org">COCO Dataset</a> (Common Objects in Context), licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+        </p>
+        <p>
+          This site collects anonymous visitor statistics with 
+          <a href="https://www.goatcounter.com/" target="_blank" rel="noopener noreferrer">GoatCounter</a>. 
+          No personal data is stored. See <a href="https://www.goatcounter.com/privacy" target="_blank" rel="noopener noreferrer">privacy policy</a>.
+        </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+  <style>
+  .ack-img{
+    float: left;
+    margin-right: 10px;
+  }
+</style>
+</html>
