@@ -1,0 +1,2 @@
+model_name,divide_et_impera,divide_et_impera_twice,exemplar_avg,cosine_similarity,normalize_features,normalize_only_biggest_bbox,use_threshold,use_roi_norm,roi_norm_after_mean,use_minmax_norm,remove_bbox_intersection,correct_bbox_resize,scaling_coeff,fixed_norm_coeff,filter_background,ellipse_normalization,ellipse_kernel_cleaning,split,num_exemplars,MAE,RMSE,MAPE,R2
+dinov2_vitb14_reg,False,False,False,False,False,False,False,True,True,True,False,True,1.0,,False,False,False,test,,0,0,0,0

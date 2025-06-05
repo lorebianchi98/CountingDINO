@@ -524,3 +524,49 @@ def ellipse_coverage(h, w, samples_per_pixel=10):
     coverage = inside.float().mean(dim=2)  # average over samples
 
     return coverage
+
+def exist_and_delete_match_df(filename, filter_dict):
+    # exist_and_delete_match_df(args.log_file, row_params_dict)
+    if not os.path.exists(filename):
+        return False
+    
+    df = pd.read_csv(filename)
+    df = df.rename(columns={'Method Name': 'model_name'})
+
+    # Build the mask for matching rows
+    mask = pd.Series([True] * len(df))
+    for k, v in filter_dict.items():
+        if k in df.columns:
+            if v is None:
+                mask &= df[k].isna()
+            else:
+                mask &= df[k] == v
+
+    if mask.any():
+        # Drop matching rows
+        df = df[~mask]
+        df.to_csv(filename, index=False)
+        return True  # Match existed and was deleted
+    else:
+        return False  # No match found
+
+def add_dummy_row(method_name, args_dict, path='results/results.csv'):
+    scores_dummy = {
+        'MAE': 0,
+        'RMSE': 0,
+        'MAPE': 0,
+        'R2': 0,
+    }
+    data_dict = {**args_dict, **scores_dummy}
+    df = pd.read_csv(path)
+    new_row = pd.Series([method_name] + list(data_dict.values()), index=df.columns)
+    idx = len(df) 
+    df.loc[idx] = new_row
+    df.to_csv(path, index=False)
+    return idx
+
+def delete_row(idx, path='results/results.csv'):
+    df = pd.read_csv(path)
+    df = df.drop(idx)
+    df.to_csv(path, index=False)
+    
