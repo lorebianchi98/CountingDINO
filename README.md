@@ -8,6 +8,9 @@ This is the official implementation of the paper:
 
 ---
 
+## Updated
+:fire: 11/2025: **"CountingDINO: A Training-free Pipeline for Exemplar-based Class-Agnostic Counting"** has been accepted to WACV2026 in Tucson! 🌵
+
 ## Installation
 
 ```bash
