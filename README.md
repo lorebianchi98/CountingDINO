@@ -1,15 +1,15 @@
 
 
 # CountingDINO 🧮🦕
-## **A Training-free Pipeline for Exemplar-based Class-Agnostic Counting**
+## **A Training-free Pipeline for Class-Agnostic Counting using Unsupervised Backbones**
 
 This is the official implementation of the paper:  
-**“CountingDINO: A Training-free Pipeline for Exemplar-based Class-Agnostic Counting”**
+**“CountingDINO: A Training-free Pipeline for Class-Agnostic Counting using Unsupervised Backbones”**
 
 ---
 
 ## Updated
-:fire: 11/2025: **"CountingDINO: A Training-free Pipeline for Exemplar-based Class-Agnostic Counting"** has been accepted to WACV2026 in Tucson! 🌵
+:fire: 11/2025: **"CountingDINO: A Training-free Pipeline for Class-Agnostic Counting using Unsupervised Backbones"** has been accepted to WACV2026 in Tucson! 🌵
 
 ## Installation
 
@@ -81,3 +81,15 @@ python cutler_evaluation_script.py \
   --density_map_dir path/to/FSC147_density_maps
 ```
 ---
+
+## Citation
+If you find our work useful, please cite us:
+```
+@inproceedings{pacini2026countingdino,
+  title={Countingdino: A training-free pipeline for class-agnostic counting using unsupervised backbones},
+  author={Pacini, Giacomo and Bianchi, Lorenzo and Ciampi, Luca and Messina, Nicola and Amato, Giuseppe and Falchi, Fabrizio},
+  booktitle={Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision},
+  pages={806--815},
+  year={2026}
+}
+```
