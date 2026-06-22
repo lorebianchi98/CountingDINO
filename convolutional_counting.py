@@ -19,16 +19,21 @@ from src.utils import (
     convert_4corners_to_x1y1x2y2, 
     get_counting_metrics, 
     log_results,
-    add_dummy_row,
+    #add_dummy_row,
     exist_match_df,
-    exist_and_delete_match_df,
+    #exist_and_delete_match_df
+)
+from src.helpers import (
     load_json, 
     get_features, 
     bboxes_tointeger, 
     compute_avg_conv_filter, 
     rescale_tensor,
     resize_conv_maps,
+    collapse_sizes,
+    closest_odd_numbers,
     rescale_bbox,
+    find_local_maxima,
     str2bool,
     ellipse_coverage
 )
@@ -37,10 +42,23 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 def process_example(
-    idx, img_filename, entry, model, transform, map_keys, img_dir, density_map_dir, config, return_maps=False
+    idx, img_filename, entry, model, transform, map_keys, img_dir, density_map_dir, config, return_maps=False, gt_count=None
 ):
+    """
+    - when gt_count is not None, it is used to compute the metrics, and the density map is not used
+    """
     img = Image.open(os.path.join(img_dir, img_filename)).convert('RGB')
-    density_map = np.load(os.path.join(density_map_dir, f"{img_filename.split('.')[0]}.npy"))
+    
+    if density_map_dir is None:
+        assert gt_count is not None, "gt_count must be provided if density_map_dir is None"
+        #assert return_maps is False, "return_maps must be False if density_map_dir is None"
+        density_map = None
+    else:
+        if gt_count is not None:
+            print(f"Warning: gt_count is provided but density_map_dir is not None. Ignoring gt_count.")
+
+        density_map = np.load(os.path.join(density_map_dir, f"{img_filename.split('.')[0]}.npy"))
+    
     w, h = img.size    
 
     with torch.no_grad():
@@ -147,7 +165,11 @@ def process_example(
     )
     if return_maps:
         return density_map, output
-    return density_map.sum().item(), output.sum().item()
+    
+    if density_map is not None:
+        gt_count = density_map.sum()
+    
+    return gt_count, output.sum().item()
 
 
 def post_process_density_map(conv_maps, pooled_feats, bboxes, output_sizes, config):
@@ -208,6 +230,7 @@ def main():
     parser.add_argument('--density_map_dir', type=str, default='/raid/datasets/FSC147/gt_density_map_adaptive_384_VarV2')
     parser.add_argument('--annotation', type=str, default='annotations/annotation_FSC147_384.json')
     parser.add_argument('--splits', type=str, default='annotations/Train_Test_Val_FSC_147.json')
+    parser.add_argument('--CARPK', type=str2bool, default=False)
     parser.add_argument('--log_file', type=str, default='results/results.csv')
     
     parser.add_argument('--divide_et_impera', type=str2bool, default=False)
@@ -233,20 +256,26 @@ def main():
     parser.add_argument('--save_preds_to_file', type=str2bool, default=False)
     parser.add_argument('--log_results', type=str2bool, default=True)
     parser.add_argument('--no_skip', type=str2bool, default=False)
-# CUDA_VISIBLE_DEVICES=4 python convolutional_counting.py --model_name dino_resnet50 --divide_et_impera True --divide_et_impera_twice True --filter_background False --ellipse_normalization True --ellipse_kernel_cleaning True --split test
-    # 
+
     args = parser.parse_args()
 
     save_preds_to_file = args.save_preds_to_file
 
-    row_params_dict = {k: v for k, v in vars(args).items() if k not in ['img_dir', 'density_map_dir', 'annotation', 'splits', 'log_file']}
-    args_dict = {k: v for k, v in vars(args).items() if k not in ['model_name', 'img_dir', 'density_map_dir', 'annotation', 'splits', 'save_preds_to_file', 'log_results', 'no_skip', 'log_file']}
-    if exist_match_df(args.log_file, row_params_dict) and not args.no_skip:
-        #print("Already done for this configuration. Skipping...")
+    if args.CARPK:
+        results_csv_path = args.log_file#'results/results_CARPK.csv'
+    else:
+        results_csv_path = args.log_file
+
+    row_params_dict = {k: v for k, v in vars(args).items() if k not in ['img_dir', 'density_map_dir', 'annotation', 'splits', 'CARPK']}
+    args_dict = {k: v for k, v in vars(args).items() if k not in ['model_name', 'img_dir', 'density_map_dir', 'annotation', 'splits', 'save_preds_to_file', 'log_results', 'CARPK', 'no_skip', 'log_file']}
+
+    
+    if os.path.exists(results_csv_path) and exist_match_df(results_csv_path, row_params_dict) and not args.no_skip:
+        print("Already done for this configuration. Skipping...")
         return
     else:
         # create dummy row
-        dummy_idx = add_dummy_row(args.model_name, args_dict, args.log_file)
+        pass
         
     
     print("Parameters Recap:")
@@ -262,7 +291,10 @@ def main():
         data_config['input_size'] = (3, resize_dim, resize_dim)
         transform = timm.data.create_transform(**data_config, is_training=False)
     else:
-        resize_dim = 840 if 'dinov2' in args.model_name else 480
+        if 'dinov2' in args.model_name:
+            resize_dim = 840
+        else:
+            resize_dim = 480
         model = VisualBackbone(args.model_name, img_size=resize_dim).to(device).eval()
         transform = T.Compose([
             T.Resize((resize_dim, resize_dim), interpolation=T.InterpolationMode.BICUBIC),
@@ -274,30 +306,41 @@ def main():
     splits = load_json(args.splits)
     examples = {k: v for k, v in examples.items() if k in splits[args.split]}
 
-    map_keys = ['vit_out'] if 'vit' in args.model_name else ['map3']
+    map_keys = ['vit_out'] if 'vit' in args.model_name or 'convnext' in args.model_name else ['map3']
 
     predictions, targets = [], []
 
-    for idx, (img_filename, entry) in tqdm(enumerate(examples.items()), total=len(examples)):
+    if args.CARPK is False:
+        density_map_dir = args.density_map_dir
+    else:
+        print("Setting density_map_dir to None for CARPK dataset")
+        density_map_dir = None
+
+    for idx, (img_filename, entry) in tqdm(enumerate(examples.items()), total=len(examples), dynamic_ncols=True):
+        if density_map_dir is None:
+            gt_count = len(entry['points'])
+        else:
+            gt_count = None
         gt, pred = process_example(idx, img_filename, entry, model, transform, map_keys,
-                                   args.img_dir, args.density_map_dir, args)
+                                   args.img_dir, density_map_dir, args, gt_count=gt_count)
         predictions.append(pred)
         targets.append(gt)
         
     if save_preds_to_file:
+        print("Saving predictions to file...")
         save_dir = os.path.join('results', args.model_name)
         os.makedirs(save_dir, exist_ok=True)
         # out file name must be specific to the configuration
-        out_file_name = f"predictions_{args.model_name}_{'_'.join([f'{k}_{v}' for k, v in args_dict.items()])}.npy"
+        out_file_name = f"predictions_{args.model_name}_{'_'.join([f'{k}_{v}' for k, v in args_dict.items()])}"[:150] + ".npy" # the maximum length of a file name is 255
         np.save(os.path.join(save_dir, out_file_name), predictions)
-        #np.save(os.path.join(save_dir, 'targets.npy'), targets)
+        np.save(os.path.join(save_dir, 'targets.npy'), targets)
+        print(f"Predictions saved to {os.path.join(save_dir, out_file_name)}")
     metrics = get_counting_metrics(predictions, targets)
     print(metrics)
 
     if args.log_results:
         # Logging the results
-        exist_and_delete_match_df(args.log_file, row_params_dict)
-        log_results({**args_dict, **metrics}, args.model_name, path=args.log_file)
-        
+        #exist_and_delete_match_df(args.log_file, row_params_dict)
+        log_results({**args_dict, **metrics}, args.model_name, path=results_csv_path)
 if __name__ == '__main__':
     main()
